@@ -102,6 +102,90 @@ fn printMermaidNode(
     }
 }
 
+// This function is written using AI so don't ask me anything about it 😄.
+pub fn writeAstToJson(allocator: std.mem.Allocator, root: ast.Node) !void {
+    const dir_path = "html";
+    const file_path = "html/output.json";
+
+    try std.fs.cwd().makePath(dir_path);
+
+    var file = try std.fs.cwd().createFile(file_path, .{ .truncate = true });
+    defer file.close();
+
+    const writer = file.writer();
+    try writeNodeAsJson(allocator, writer, root, 0);
+}
+
+fn writeNodeAsJson(
+    allocator: std.mem.Allocator,
+    writer: anytype,
+    node: ast.Node,
+    indent: usize,
+) !void {
+    const ind = try indentString(allocator, indent);
+    try writer.print("{s}{{\n", .{ind});
+
+    var has_previous = false;
+
+    if (node.tag_name) |tag| {
+        try writer.print("{s}  \"tag\": ", .{ind});
+        try std.json.stringify(tag, .{}, writer);
+        has_previous = true;
+    }
+
+    if (node.attributes.items.len > 0) {
+        if (has_previous) try writer.print(",\n", .{});
+        try writer.print("{s}  \"attributes\": {{\n", .{ind});
+        for (node.attributes.items, 0..) |attr, i| {
+            const comma = if (i < node.attributes.items.len - 1) "," else "";
+
+            try writer.print("{s}    ", .{ind});
+            try std.json.stringify(attr.name, .{}, writer);
+            try writer.print(": ", .{});
+
+            if (attr.value) |val| {
+                try std.json.stringify(val, .{}, writer);
+            } else {
+                try writer.print("true", .{});
+            }
+
+            try writer.print("{s}\n", .{comma});
+        }
+        try writer.print("{s}  }}", .{ind});
+        has_previous = true;
+    }
+
+    if (node.text) |txt| {
+        if (has_previous) try writer.print(",\n", .{});
+        try writer.print("{s}  \"text\": ", .{ind});
+        try std.json.stringify(txt, .{}, writer);
+        has_previous = true;
+    }
+
+    if (node.comment) |comment| {
+        if (has_previous) try writer.print(",\n", .{});
+        try writer.print("{s}  \"comment\": ", .{ind});
+        try std.json.stringify(comment, .{}, writer);
+        has_previous = true;
+    }
+
+    if (node.children.items.len > 0) {
+        if (has_previous) try writer.print(",\n", .{});
+        try writer.print("{s}  \"children\": [\n", .{ind});
+        for (node.children.items, 0..) |child, i| {
+            try writeNodeAsJson(allocator, writer, child, indent + 2);
+            if (i < node.children.items.len - 1) {
+                try writer.print(",\n", .{});
+            } else {
+                try writer.print("\n", .{});
+            }
+        }
+        try writer.print("{s}  ]", .{ind});
+    }
+
+    try writer.print("\n{s}}}", .{ind});
+}
+
 const void_elements = [_][]const u8{
     "area",  "base",   "br",    "col",  "embed",
     "hr",    "img",    "input", "link", "meta",
@@ -113,4 +197,11 @@ pub fn isVoidElement(name: []const u8) bool {
         if (std.ascii.eqlIgnoreCase(name, v)) return true;
     }
     return false;
+}
+
+fn indentString(allocator: std.mem.Allocator, level: usize) ![]u8 {
+    const total = level * 2; // "  " per level
+    const buf = try allocator.alloc(u8, total);
+    for (buf) |*c| c.* = ' ';
+    return buf;
 }

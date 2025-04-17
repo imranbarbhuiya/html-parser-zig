@@ -1,0 +1,136 @@
+{
+  "children": [
+    {
+      "tag": "html",
+      "attributes": {
+        "lang": "en"
+      },
+      "children": [
+        {
+          "tag": "head",
+          "children": [
+            {
+              "tag": "meta",
+              "attributes": {
+                "charset": "UTF-8"
+              }
+            },
+            {
+              "tag": "meta",
+              "attributes": {
+                "name": "viewport",
+                "content": "width=device-width, initial-scale=1.0"
+              }
+            },
+            {
+              "tag": "title",
+              "children": [
+                {
+                  "text": "Document"
+                }
+              ]
+            },
+            {
+              "tag": "style",
+              "children": [
+                {
+                  "text": "\n        .container {\n            width: 100%;\n            height: 100px;\n            background-color: lightblue;\n            border: 1px solid blue;\n        }\n    "
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "body",
+          "attributes": {
+            "style": "background-color: lightgray;",
+            "data-open": "true",
+            "data-close": "false"
+          },
+          "children": [
+            {
+              "tag": "h1",
+              "attributes": {
+                "class": "header title"
+              },
+              "children": [
+                {
+                  "text": "Test File"
+                }
+              ]
+            },
+            {
+              "tag": "p",
+              "children": [
+                {
+                  "text": "This is a test file to check the functionality of the HTML structure."
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "attributes": {
+                "class": "container",
+                "id": "main"
+              },
+              "children": [
+                {
+                  "tag": "p",
+                  "children": [
+                    {
+                      "text": "Container div for layout purposes."
+                    }
+                  ]
+                },
+                {
+                  "tag": "img",
+                  "attributes": {
+                    "src": "https://via.placeholder.com/150",
+                    "alt": "Placeholder Image"
+                  }
+                },
+                {
+                  "tag": "input",
+                  "attributes": {
+                    "type": "checkbox",
+                    "checked": true,
+                    "disabled": true,
+                    "id": "checkbox"
+                  }
+                }
+              ]
+            },
+            {
+              "comment": "<!-- This is a single line comment -->"
+            },
+            {
+              "comment": "<!-- \n    This is a multi-line comment\n    that spans multiple lines.\n     -->"
+            },
+            {
+              "comment": "<!-- \n    This comment includes tags\n    <div>Some HTML</div>\n    <p>Some text</p> \n    -->"
+            },
+            {
+              "tag": "script",
+              "children": [
+                {
+                  "text": "\n        // This is a single line JavaScript comment\n        console.log(\"Hello, World!\");\n\n        /*\n        This is a multi-line JavaScript comment\n        that can span multiple lines.\n        */\n        // This is a comment with HTML tags\n        console.log(\"<div>Some HTML</div>\");\n        // This is a comment with HTML tags\n    "
+                }
+              ]
+            },
+            {
+              "tag": "script",
+              "attributes": {
+                "src": "https://code.jquery.com/jquery-3.6.0.min.js"
+              },
+              "children": [
+                {
+                  "text": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

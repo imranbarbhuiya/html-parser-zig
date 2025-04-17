@@ -40,4 +40,5 @@ pub fn main() !void {
     try stdout.print("\nParsed HTML Tree:\n", .{});
     try utils.printNodeTree(document.root, 0);
     try utils.writeNodeTreeMarkdownMermaidToFile(allocator, document.root);
+    try utils.writeAstToJson(allocator, document.root);
 }
