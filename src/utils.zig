@@ -52,6 +52,7 @@ pub fn printNodeTree(node: ast.Node, indent: usize) !void {
     }
 }
 
+// These print functions are written using AI so don't ask me anything about it 😄.
 pub fn writeNodeTreeMarkdownMermaidToFile(allocator: std.mem.Allocator, root: ast.Node) !void {
     const dir_path = "html";
     const file_path = "html/output.md";
@@ -78,31 +79,18 @@ fn printMermaidNode(
     id: []const u8,
     node_id_counter: *usize,
 ) !void {
-    var label: []const u8 = undefined;
+    const safeLabel = try makeSafeLabel(allocator, node);
 
-    if (node.tag_name) |tag| {
-        label = tag;
-    } else if (node.text) |text| {
-        label = try std.fmt.allocPrint(allocator, "\"{s}\"", .{text});
-    } else if (node.comment) |comment| {
-        label = try std.fmt.allocPrint(allocator, "comment: \"{s}\"", .{comment});
-    } else {
-        label = "Document";
-    }
+    try writer.print("    {s}[{s}]\n", .{ id, safeLabel });
 
-    try writer.print("    {s}[{s}]\n", .{ id, label });
-
-    var child_index: usize = 0;
     for (node.children.items) |child| {
         node_id_counter.* += 1;
         const child_id = try std.fmt.allocPrint(allocator, "n{d}", .{node_id_counter.*});
         try writer.print("    {s} --> {s}\n", .{ id, child_id });
         try printMermaidNode(allocator, writer, child, child_id, node_id_counter);
-        child_index += 1;
     }
 }
 
-// This function is written using AI so don't ask me anything about it 😄.
 pub fn writeAstToJson(allocator: std.mem.Allocator, root: ast.Node) !void {
     const dir_path = "html";
     const file_path = "html/output.json";
@@ -204,4 +192,47 @@ fn indentString(allocator: std.mem.Allocator, level: usize) ![]u8 {
     const buf = try allocator.alloc(u8, total);
     for (buf) |*c| c.* = ' ';
     return buf;
+}
+
+fn makeSafeLabel(allocator: std.mem.Allocator, node: ast.Node) ![]const u8 {
+    if (node.tag_name) |tag| {
+        return tag;
+    } else if (node.text) |text| {
+        return try formatSafe(allocator, .text, text);
+    } else if (node.comment) |comment| {
+        return try formatSafe(allocator, .comment, comment);
+    }
+    return "Document";
+}
+
+fn formatSafe(allocator: std.mem.Allocator, kind: enum { text, comment }, value: []const u8) ![]const u8 {
+    const cleaned = try cleanMermaidText(allocator, value);
+
+    return switch (kind) {
+        .text => std.fmt.allocPrint(allocator, "text: {s}", .{cleaned}),
+        .comment => std.fmt.allocPrint(allocator, "comment: {s}", .{cleaned}),
+    };
+}
+
+fn cleanMermaidText(allocator: std.mem.Allocator, input: []const u8) ![]const u8 {
+    var buf = std.ArrayList(u8).init(allocator);
+    defer buf.deinit();
+
+    var count: usize = 0;
+    for (input) |c| {
+        if (count >= 40) {
+            try buf.appendSlice("…");
+            break;
+        }
+
+        switch (c) {
+            '\n', '\r' => try buf.append(' '),
+            '[', ']', '{', '}', '(', ')', ':', '=', '%', '.', '\"', '\'', '`', '\\', '>', '<', '|', '&' => {}, // skip
+            else => try buf.append(c),
+        }
+
+        count += 1;
+    }
+
+    return try allocator.dupe(u8, buf.items);
 }

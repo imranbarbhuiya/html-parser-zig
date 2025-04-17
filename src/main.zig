@@ -5,7 +5,14 @@ const utils = @import("utils.zig");
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
-    const path = "html/test.html";
+
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+
+    const path: []const u8 = if (args.len > 1)
+        args[1]
+    else
+        "html/test.html";
 
     var file = try std.fs.cwd().openFile(path, .{});
     defer file.close();
@@ -30,7 +37,6 @@ pub fn main() !void {
     // }
 
     const document = try parser.parseTokens(allocator, tokens);
-
     const stdout = std.io.getStdOut().writer();
 
     if (document.doctype) |dt| {
@@ -38,7 +44,7 @@ pub fn main() !void {
     }
 
     try stdout.print("\nParsed HTML Tree:\n", .{});
-    try utils.printNodeTree(document.root, 0);
     try utils.writeNodeTreeMarkdownMermaidToFile(allocator, document.root);
     try utils.writeAstToJson(allocator, document.root);
+    try utils.printNodeTree(document.root, 0);
 }
